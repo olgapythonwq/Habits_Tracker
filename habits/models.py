@@ -1,6 +1,6 @@
 from django.db import models
-
 from django.conf import settings
+from django.core.validators import MaxValueValidator
 
 
 class Habit(models.Model):
@@ -17,7 +17,7 @@ class Habit(models.Model):
     is_pleasant = models.BooleanField(default=False, verbose_name="Is pleasant")
     reward = models.CharField(max_length=255, null=True, blank=True, verbose_name="Reward", help_text="Enter reward")
     periodicity = models.PositiveSmallIntegerField(default=1, verbose_name="Periodicity (days)")
-    duration = models.PositiveSmallIntegerField(verbose_name="Duration (seconds)")
+    duration = models.PositiveSmallIntegerField(validators=[MaxValueValidator(120)], verbose_name="Duration (seconds)")
     is_public = models.BooleanField(default=False, verbose_name="Is public")
     # 4. Служебные поля
     created_at = models.DateTimeField(auto_now_add=True)
