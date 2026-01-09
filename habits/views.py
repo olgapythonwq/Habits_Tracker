@@ -5,6 +5,7 @@ from .models import Habit
 from .pagination import HabitPagination
 from .permissions import IsOwner
 from .serializers import HabitSerializer
+from drf_spectacular.utils import extend_schema
 
 
 class HabitViewSet(ModelViewSet):
@@ -20,6 +21,10 @@ class HabitViewSet(ModelViewSet):
         serializer.save(owner=self.request.user)
 
 
+@extend_schema(
+    summary="Public habits list",
+    description="Returns list of public habits available for all users",
+)
 class PublicHabitViewSet(ReadOnlyModelViewSet):
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated]

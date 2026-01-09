@@ -154,7 +154,7 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
 
     # JWT в Swagger
-    'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_INCLUDE_SCHEMA': True,
     'COMPONENT_SPLIT_REQUEST': True,
 
     'SECURITY': [
