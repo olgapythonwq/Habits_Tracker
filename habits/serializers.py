@@ -3,6 +3,7 @@ from .models import Habit
 
 
 class HabitSerializer(serializers.ModelSerializer):
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Habit
@@ -30,3 +31,4 @@ class HabitSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Pleasant habit cannot have reward or related habit.")
 
         return attrs
+
