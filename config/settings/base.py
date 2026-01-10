@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
     'users',
     'habits',
+    'telegram_bot',
 ]
 
 MIDDLEWARE = [
@@ -199,3 +200,5 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
 AUTH_USER_MODEL = 'users.User'
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
