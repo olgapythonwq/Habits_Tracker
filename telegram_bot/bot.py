@@ -11,4 +11,3 @@ def send_message(chat_id: int, text: str):
     data = {"chat_id": chat_id, "text": text}
     response = requests.post(url, data=data)
     return response.json()
-

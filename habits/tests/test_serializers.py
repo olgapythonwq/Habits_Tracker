@@ -56,4 +56,3 @@ class HabitSerializerTestCase(TestCase):
 
         serializer = HabitSerializer(habit)
         self.assertEqual(serializer.data["owner"], self.user.id)
-

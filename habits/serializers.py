@@ -31,4 +31,3 @@ class HabitSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Pleasant habit cannot have reward or related habit.")
 
         return attrs
-
