@@ -107,4 +107,3 @@ class HabitValidatorTestCase(TestCase):
 
         serializer = HabitSerializer(data=data)
         self.assertTrue(serializer.is_valid())
-
