@@ -1,7 +1,7 @@
 from celery import shared_task
 from django.utils import timezone
 from habits.models import Habit
-from telegram_bot.bot import send_message
+from habits.services import send_message
 
 
 @shared_task

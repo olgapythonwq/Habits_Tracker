@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc',),
 
     path("api/", include("habits.urls")),
+    path('api/users/', include('users.urls')),
 
     # JWT
     path('api/token/', TokenObtainPairView.as_view(), name='login'),
