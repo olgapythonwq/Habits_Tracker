@@ -13,9 +13,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv(override=True)  # загружает переменные из .env в окружение
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -25,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -93,12 +91,12 @@ REST_FRAMEWORK = {
 
 DATABASES = {
     'default': {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("NAME"),
-        "USER": os.getenv("USER"),
-        "PASSWORD": os.getenv("PASSWORD"),
-        "HOST": os.getenv("HOST"),
-        "PORT": os.getenv("PORT"),
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("POSTGRES_DB"),
+        "USER": config("POSTGRES_USER"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
+        "HOST": config("POSTGRES_HOST", 'db'),  # 'db' — имя сервиса в docker-compose
+        "PORT": config("POSTGRES_PORT", '5432', cast=int),
     }
 }
 
@@ -144,8 +142,8 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_ROOT = BASE_DIR / 'media'
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("JWT_ACCESS_LIFETIME_MINUTES", 15))),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_LIFETIME_DAYS", 1))),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(config("JWT_ACCESS_LIFETIME_MINUTES", 15))),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(config("JWT_REFRESH_LIFETIME_DAYS", 1))),
 }
 
 SPECTACULAR_SETTINGS = {
@@ -187,10 +185,10 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = False
 
-REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = os.getenv("REDIS_PORT")
-REDIS_BROKER_DB = os.getenv("REDIS_BROKER_DB")
-REDIS_RESULT_DB = os.getenv("REDIS_RESULT_DB")
+REDIS_HOST = config("REDIS_HOST")
+REDIS_PORT = config("REDIS_PORT")
+REDIS_BROKER_DB = config("REDIS_BROKER_DB")
+REDIS_RESULT_DB = config("REDIS_RESULT_DB")
 
 CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_BROKER_DB}"
 CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_RESULT_DB}"
@@ -201,4 +199,4 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 AUTH_USER_MODEL = 'users.User'
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = config("TELEGRAM_BOT_TOKEN")
