@@ -2,8 +2,8 @@
 services:
   # Сервис django-приложения
   web:
-    # Создаём образ
-    build: .
+    # Используем образ
+    image: ${DOCKERHUB_USERNAME}/habits_tracker:latest
     # Собираем статические файлы и запускаем gunicorn сервер
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --timeout 120
     volumes:
@@ -56,7 +56,7 @@ services:
 
   # Сервис celery
   celery:
-    build: .
+    image: ${DOCKERHUB_USERNAME}/habits_tracker:latest
     container_name: habits_celery
     command: celery -A config worker -l info
     # Монтируем том для хранения данных celery
@@ -69,7 +69,7 @@ services:
 
   # Сервис celery beat
   celery-beat:
-    build: .
+    image: ${DOCKERHUB_USERNAME}/habits_tracker:latest
     container_name: habits_celery-beat
     command: celery -A config beat -l info
     # Монтируем том для хранения данных celery beat
