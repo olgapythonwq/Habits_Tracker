@@ -5,6 +5,8 @@ on:
     branches:
       - develop
   pull_request:
+    branches:
+      - develop
 
 jobs:
   test:  # Запуск тестов
@@ -91,7 +93,7 @@ jobs:
   deploy:  # Деплой на сервер
     needs: build  # Деплоим только после успешной сборки Докер-образа
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    if: github.base_ref == 'develop' || github.ref == 'refs/heads/develop'
 
     steps:
     - name: Set up SSH  # Настраиваем SSH для подключения к серверу
