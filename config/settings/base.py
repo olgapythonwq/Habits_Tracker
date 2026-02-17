@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -200,3 +201,11 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 AUTH_USER_MODEL = 'users.User'
 
 TELEGRAM_BOT_TOKEN = config("TELEGRAM_BOT_TOKEN")
+
+if 'pytest' in sys.argv or 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'test_db.sqlite3',
+        }
+    }
