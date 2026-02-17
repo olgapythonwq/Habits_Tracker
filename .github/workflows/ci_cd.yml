@@ -33,6 +33,7 @@ jobs:
       POSTGRES_PORT: 5432
       DJANGO_SETTINGS_MODULE: config.settings.dev
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      CI: true
 
     steps:
       - name: Check out code  # Получаем код из репозитория

@@ -90,7 +90,7 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-if 'pytest' in sys.argv or 'test' in sys.argv:
+if os.getenv("CI") == "true":
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
