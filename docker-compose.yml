@@ -20,6 +20,16 @@ services:
     env_file:
       - ./.env
 
+  nginx:
+    # Создаём образ
+    build: ./nginx
+    # Пробрасываем порт 80 на порт машины
+    ports:
+      - "80:80"
+    # Указываем, что nginx зависит от сервиса web
+    depends_on:
+      - web
+
   # Сервис БД postgresql
   db:
     # Используем официальный образ postgresql версии 16
