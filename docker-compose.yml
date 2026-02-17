@@ -10,8 +10,8 @@ services:
       - habits_static_volume:/app/staticfiles
       - habits_media_volume:/app/media
     # Открываем порт 8000 внутри docker-сети
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     # Указываем, что сервис зависит от БД и редис
     depends_on:
       - db
