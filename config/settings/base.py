@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='test-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -89,16 +89,24 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("POSTGRES_DB"),
-        "USER": config("POSTGRES_USER"),
-        "PASSWORD": config("POSTGRES_PASSWORD"),
-        "HOST": config("POSTGRES_HOST", 'db'),  # 'db' — имя сервиса в docker-compose
-        "PORT": config("POSTGRES_PORT", '5432', cast=int),
+if os.getenv("CI") == "true":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'test_db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("POSTGRES_DB"),
+            "USER": config("POSTGRES_USER"),
+            "PASSWORD": config("POSTGRES_PASSWORD"),
+            "HOST": config("POSTGRES_HOST", 'db'),  # 'db' — имя сервиса в docker-compose
+            "PORT": config("POSTGRES_PORT", '5432', cast=int),
+        }
+    }
 
 
 # Password validation
@@ -185,18 +193,9 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = False
 
-REDIS_HOST = config("REDIS_HOST")
-REDIS_PORT = config("REDIS_PORT")
-REDIS_BROKER_DB = config("REDIS_BROKER_DB")
-REDIS_RESULT_DB = config("REDIS_RESULT_DB")
 
-CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_BROKER_DB}"
-CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_RESULT_DB}"
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
 
 
 AUTH_USER_MODEL = 'users.User'
 
-TELEGRAM_BOT_TOKEN = config("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = config("TELEGRAM_BOT_TOKEN", default="")

@@ -14,6 +14,7 @@ This project was developed as a course final assignment and represents a REST AP
 [Testing](#Testing)  
 [Code Quality](#Code Quality)  
 [Permissions](#Permissions)  
+[Remote Server Setup and Application Deployment](#Remote Server Setup and Application Deployment)  
 [Project Status](#Project Status)  
 [Author](#Author)
 
@@ -144,6 +145,76 @@ Result: 100% (migrations excluded)
 - Users can manage only their own habits
 - Public habits are available read-only for all authenticated users
 - All endpoints are protected with JWT and custom permissions
+
+## <a id="title1">Remote Server Setup and Application Deployment</a>
+1. Prepare the Server
+   - Install Docker and Docker Compose:
+   ```bash
+      sudo apt update
+      sudo apt install -y docker.io docker-compose
+      sudo systemctl enable --now docker
+   ```
+   - Create a project directory:
+   ```bash
+      mkdir ~/Habits_Tracker
+      cd ~/Habits_Tracker
+   ```
+   - Set up SSH access for GitHub Actions:
+   1) Add the public key from SERVER_SSH_KEY to ~/.ssh/authorized_keys on the server. Test the connection:
+   ```bash
+      ssh user@server_ip
+   ```
+2. Configure GitHub Actions Secrets
+- Add the following secrets in your GitHub repository:
+
+| Secret Name | Value                    |  
+| ----------- |--------------------------| 
+| SECRET_KEY    | Django SECRET_KEY        | 
+| DOCKERHUB_USERNAME  | Docker Hub username      |
+| DOCKERHUB_TOKEN   | Docker Hub access token  | 
+| SERVER_SSH_KEY    | Private SSH key for server access        | 
+| SERVER_USER  | Server user     |
+| SERVER_IP   | Server IP address  | 
+
+3. Run the Workflow Locally via GitHub
+- Create and switch to the develop branch:
+   ```bash
+      git checkout -b develop
+   ```
+  - Commit and push changes: 
+  ```bash
+     git add .
+     git commit -m "Feature: CI/CD workflow test"
+     git push origin develop
+   ```
+- GitHub Actions will automatically run the workflow:
+  1) Test – runs pytest to verify code.
+  2) Build – builds Docker images for all services.
+  3) Deploy – deploys the application to the server.
+  4) The workflow is configured to deploy only on push or pull request to the develop branch.
+
+4. Verify Deployment
+- Connect to the server via SSH:
+   ```bash
+      ssh user@server_ip
+   ```
+- Check Docker containers:
+   ```bash
+      docker compose ps
+   ```
+- Ensure all services (web, nginx, celery, redis, db) are running. 
+- Open the server's public IP in a browser — your site should be live.
+
+5. Updating the Application
+- Any changes pushed to develop are automatically built and deployed via the workflow. 
+- To manually update:
+   ```bash
+      ssh user@server_ip
+      cd ~/Habits_Tracker
+      docker compose pull
+      docker compose up -d --remove-orphans
+      docker image prune -f
+   ```
 
 ## <a id="title1">Project Status</a>
 - [x] Completed
