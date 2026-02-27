@@ -1,0 +1,88 @@
+# Описываем сервисы приложения
+services:
+  # Сервис django-приложения
+  web:
+    # Используем образ
+    image: ${DOCKERHUB_USERNAME}/habits_tracker:latest
+    # Собираем статические файлы и запускаем gunicorn сервер
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --timeout 120
+    volumes:
+      - habits_static_volume:/app/staticfiles
+      - habits_media_volume:/app/media
+    # Открываем порт 8000 внутри docker-сети
+    expose:
+      - "8000"
+    # Указываем, что сервис зависит от БД и редис
+    depends_on:
+      - db
+      - redis
+    # Подключаем файл с переменными окружения
+    env_file:
+      - ./.env
+
+  nginx:
+    # Создаём образ
+    build: ./nginx
+    # Пробрасываем порт 80 на порт машины
+    ports:
+      - "80:80"
+    # Указываем, что nginx зависит от сервиса web
+    depends_on:
+      - web
+
+  # Сервис БД postgresql
+  db:
+    # Используем официальный образ postgresql версии 16
+    image: postgres:16
+    container_name: habits_db
+    # Монтируем том для хранения данных БД
+    volumes:
+      - habits_postgres_data:/var/lib/postgresql/data/
+    # Подключаем файл с переменными окружения
+    env_file:
+       - ./.env
+
+  # Сервис редис
+  redis:
+    # Используем официальный образ редис
+    image: redis:7
+    container_name: habits_redis
+    # Монтируем том для хранения данных редис
+    volumes:
+      - habits_redis_data:/data
+    # Подключаем файл с переменными окружения
+    env_file:
+      - ./.env
+
+  # Сервис celery
+  celery:
+    image: ${DOCKERHUB_USERNAME}/habits_tracker:latest
+    container_name: habits_celery
+    command: celery -A config worker -l info
+    # Монтируем том для хранения данных celery
+    depends_on:
+      - db
+      - redis
+    # Подключаем файл с переменными окружения
+    env_file:
+      - ./.env
+
+  # Сервис celery beat
+  celery-beat:
+    image: ${DOCKERHUB_USERNAME}/habits_tracker:latest
+    container_name: habits_celery-beat
+    command: celery -A config beat -l info
+    # Монтируем том для хранения данных celery beat
+    depends_on:
+      - db
+      - redis
+    # Подключаем файл с переменными окружения
+    env_file:
+      - ./.env
+
+# Объявляем тома для сохранения данных между перезапусками
+volumes:
+  habits_postgres_data:
+  habits_static_volume:
+  habits_redis_data:
+  habits_media_volume:

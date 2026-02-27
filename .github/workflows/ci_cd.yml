@@ -1,0 +1,116 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test:  # Запуск тестов
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      POSTGRES_NAME: test_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      CI: true
+
+    steps:
+      - name: Check out code  # Получаем код из репозитория
+        uses: actions/checkout@v3
+
+      - name: Set up Python  # Устанавливаем Пайтон нужной версии
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Cache Poetry  # Устанавливаем cache poetry
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install Poetry  # Устанавливаем poetry
+        run: pip install poetry
+
+      - name: Install dependencies  # Устанавливаем зависимости проекта
+        run: poetry install --no-interaction --no-root
+
+      - name: Run tests  # Запускаем тесты
+        run: poetry run pytest
+
+  build:  # Сборка Докер образа
+    needs: test  # Докер образ будет собираться только послу успешного прохождения тестов
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code  # Получаем код из репозитория
+        uses: actions/checkout@v3
+
+      - name: Login to Docker hub  # Авторизуемся в Docker hub, используя секреты
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+# Эту и последующие команды можно использовать из заранее подготовленного шаблона. Они подходят для любого приложения
+# Эти секреты необходимо добавить в Гитхаб Экшнс
+
+      - name: Build Docker image  # Собираем докер-образ с тегом на основе последнего комита.
+        # Обновляем тег latest
+        run: |
+          docker build \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/habits_tracker:${{ github.sha }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/habits_tracker:latest .
+
+      - name: Push Docker images to Docker Hub  # Отправляем собранные образы в Docker hub
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/habits_tracker:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/habits_tracker:latest
+
+  deploy:  # Деплой на сервер
+    needs: build  # Деплоим только после успешной сборки Докер-образа
+    runs-on: ubuntu-latest
+    if: github.base_ref == 'develop' || github.ref == 'refs/heads/develop'
+
+    steps:
+    - name: Set up SSH  # Настраиваем SSH для подключения к серверу
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+    - name: Deploy to server  # Подключаемся к серверу и деплоим приложение через Docker.
+      # Подключаемся к серверу.
+      # Скачиваем новый образ с Docker hub.
+      # Останавливаем старый контейнер, если он есть.
+      # Удаляем старый контейнер, если он есть.
+      # Запускаем новый контейнер
+      run: |      
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'          
+        cd Habits_Tracker
+        docker compose pull
+        docker compose up -d --remove-orphans --force-recreate
+        docker image prune -f
+        EOF
